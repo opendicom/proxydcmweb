@@ -3,7 +3,7 @@ from proxyrest import models
 
 
 class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'aet', 'url']
+    list_display = ['name', 'url']
 
 admin.site.register(models.Institution, InstitutionAdmin)
 
@@ -15,6 +15,6 @@ admin.site.register(models.StaticParameter, StaticParameterAdmin)
 
 
 class SessionRestAdmin(admin.ModelAdmin):
-    list_display = ['sessionid', 'start_date', 'expiration_date', 'user']
+    list_display = ['sessionid', 'start_date', 'expiration_date']
 
 admin.site.register(models.SessionRest, SessionRestAdmin)

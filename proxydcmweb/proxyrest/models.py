@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 class Institution(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=64, blank=False, null=False)
-    aet = models.CharField(max_length=255, blank=False, null=False)
     url = models.URLField(blank=True, null=True)
 
     def __str__(self):
@@ -24,4 +23,4 @@ class SessionRest(models.Model):
     sessionid = models.CharField(max_length=32, primary_key=True)
     start_date = models.DateTimeField()
     expiration_date = models.DateTimeField()
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    parameter = models.ForeignKey(StaticParameter, on_delete=models.DO_NOTHING)
