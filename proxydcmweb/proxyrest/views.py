@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-import requests, json, uuid
+import requests, uuid
 from proxyrest.models import SessionRest, StaticParameter, Institution
 
 
@@ -71,16 +71,22 @@ def qido(request, *args, **kwargs):
         except SessionRest.DoesNotExist:
             return Response({'error': 'invalid credentials, session not exist'}, status=status.HTTP_401_UNAUTHORIZED)
         if validate_session_expired(sessionrest):
-            print(request.get_full_path())
             full_path = request.get_full_path()
             current_path = full_path[full_path.index('qido/') + 5:]
             current_path = sessionrest.parameter.institution.url + current_path + sessionrest.parameter.parameter
-            qido_res = requests.get(current_path).json()
-            #if '00081190' in qido_res[0]:
-
-            #    del qido_res[0]['00081190']
-
-            return Response(qido_res, status=status.HTTP_200_OK)
+            qido_response = requests.get(current_path)
+            if qido_response.text != '':
+                data_response = qido_response.json()
+                for item in data_response:
+                    if '00081190' in item:
+                        study_data = item['00081190']['Value'][0]
+                        study_data = study_data[study_data.index('rs') + 3:]
+                        wado_url = request.scheme + '://' + request.get_host() + '/proxydcmweb/session/'
+                        wado_url = wado_url + kwargs.get('session') + '/wado/' + study_data
+                        item['00081190']['Value'] = [wado_url]
+                return Response(data_response, status=status.HTTP_200_OK)
+            else:
+                return Response({}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'session expired'}, status=status.HTTP_401_UNAUTHORIZED)
     else:
