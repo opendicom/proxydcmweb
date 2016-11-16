@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.http import HttpResponse
 from django.utils import timezone
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-import requests, uuid
+import requests
+import uuid
 from proxyrest.models import SessionRest, StaticParameter, Institution
 
 
@@ -87,6 +88,27 @@ def qido(request, *args, **kwargs):
                 return Response(data_response, status=status.HTTP_200_OK)
             else:
                 return Response({}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'session expired'}, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        return Response({'error': 'missing parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def wado(request, *args, **kwargs):
+    if 'session' in kwargs:
+        try:
+            sessionrest = SessionRest.objects.get(sessionid=kwargs.get('session'))
+        except SessionRest.DoesNotExist:
+            return Response({'error': 'invalid credentials, session not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+        if validate_session_expired(sessionrest):
+            full_path = request.get_full_path()
+            current_path = full_path[full_path.index('wado/') + 5:]
+            current_path = sessionrest.parameter.institution.url + current_path
+            headers = {'Accept': 'multipart/related; type=application/dicom;'}
+            wado_response = requests.get(current_path, headers=headers)
+            return HttpResponse(wado_response.content, status=wado_response.status_code,
+                                content_type=wado_response.headers.get('content-type'))
         else:
             return Response({'error': 'session expired'}, status=status.HTTP_401_UNAUTHORIZED)
     else:
