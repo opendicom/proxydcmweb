@@ -9,7 +9,7 @@ import uuid
 from proxyrest.models import SessionRest, StaticParameter, Institution
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def rest_login(request, *args, **kwargs):
     if 'institution' in kwargs and 'user' in kwargs and 'password' in kwargs:
         try:
@@ -31,7 +31,7 @@ def rest_login(request, *args, **kwargs):
         return Response({'error': 'missing params'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def rest_logout(request, *args, **kwargs):
     if 'session' in kwargs:
         try:
